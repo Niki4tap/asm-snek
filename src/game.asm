@@ -17,7 +17,7 @@ section .data
 global snake_len
 snake_len: db 0
 snake_char: db 'X'
-snake: times 500 db 0 ;; FIXME this is hardcoded ;;times %eval(100 * snake_tile) db 0
+snake: times MAX_SNAKE_LEN * snake_tile_size db 0
 swap_snake: snake_tile_zero
 apple: pos_zero
 global game_state
@@ -368,7 +368,7 @@ game_process_move:
 	jmp_if_ne ax, [apple+pos.x], .only_move
 	jmp_if_ne dx, [apple+pos.y], .only_move
 
-	jmp_if_ne byte [snake_len], 99, .not_won
+	jmp_if_ne byte [snake_len], %eval(MAX_SNAKE_LEN - 1), .not_won
 
 	mov byte [game_state], GAME_STATE_WON
 	jmp .end

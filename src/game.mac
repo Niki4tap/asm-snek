@@ -3,6 +3,8 @@
 %ifndef GAME_MAC
 %define GAME_MAC
 
+%define MAX_SNAKE_LEN 100
+
 %define GAME_STATE_RUNNING 0
 %define GAME_STATE_PAUSED 1
 %define GAME_STATE_WON 2
