@@ -1,7 +1,0 @@
-%ifndef INPUT_MAC
-%define INPUT_MAC
-%include "poll.mac"
-%include "io.mac"
-
-
-%endif

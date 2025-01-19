@@ -9,7 +9,6 @@
 %include "term.mac"
 %include "io.mac"
 %include "input.inc"
-%include "input.mac"
 %include "screen.inc"
 %include "rand.inc"
 %include "rand.mac"
