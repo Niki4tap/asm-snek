@@ -2,6 +2,17 @@
 
 This project is nothing more than just a simple snake game, written in x86_64, for linux, using only kernel interface (syscalls), no libc.
 
+### Building
+
+Prerequisites:
+- coreutils
+- nasm (the netwide assembler)
+- ld (linker)
+
+For debug headers:
+- cc (c compiler)
+- objcopy
+
 ### Why?
 
 I just wanted to practice assembly, I had a lot of theoretical understanding of it, but never tried to solidify it, this project is attempt at it.
