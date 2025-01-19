@@ -1,0 +1,123 @@
+%ifndef COMMON_MAC
+%define COMMON_MAC
+
+%define clean(a) xor a, a
+
+%macro prologue 0
+	push rbp
+	mov rbp, rsp
+%endmacro
+
+%macro epilogue 0
+	mov rsp, rbp
+	pop rbp
+	ret
+%endmacro
+
+%macro _struc_zero 1
+	%define %[%1 %+ _zero] times %1 %+ _size db 0
+%endmacro
+%define struc_zero(s) _struc_zero s
+
+;; source: https://wiki.osdev.org/System_V_ABI (not primary, see System V ABI)
+;; On x86_64:
+;; Functions preserve the registers rbx, rsp (stack), rbp (stack), r12, r13, r14, and r15
+;; while rax (ret0), rdi (arg0), rsi (arg1), rdx (arg2 & ret1), rcx (arg3), r8 (arg4), r9 (arg5), r10, r11 are scratch registers
+%macro preserve 1-*
+	%if %0 = 1 && %1 = 'all'
+		push rbx
+		push r12
+		push r13
+		push r14
+		push r15
+	%else
+		%rep %0
+			push %1
+			%rotate 1
+		%endrep
+	%endif
+%endmacro
+
+%macro restore 1-*
+	%if %0 = 1 && %1 = 'all'
+		pop r15
+		pop r14
+		pop r13
+		pop r12
+		pop rbx
+	%else
+		%rep %0
+			pop %1
+			%rotate 1
+		%endrep
+	%endif
+%endmacro
+
+%define c_char_n(x, n) x %+ b n
+%define c_char(x) c_char_n(x, 1)
+%define c_char_ptr byte
+
+%define c_short_n(x, n) x %+ w n
+%define c_short(x) c_short_n(x, 1)
+%define c_short_ptr word
+
+%define c_int_n(x, n) x %+ d n
+%define c_int(x) c_int_n(x, 1)
+%define c_int_ptr dword
+
+%define c_long_n(x, n) x %+ q n
+%define c_long(x) c_long_n(x, 1)
+%define c_long_ptr qword
+
+%macro jmp_if_eq 3
+	cmp %1, %2
+	je %3
+%endmacro
+
+%macro jmp_if_ne 3
+	cmp %1, %2
+	jne %3
+%endmacro
+
+%macro jmp_if_gt 3
+	cmp %1, %2
+	jg %3
+%endmacro
+
+%macro jmp_if_lt 3
+	cmp %1, %2
+	jl %3
+%endmacro
+
+%macro jmp_if_ge 3
+	cmp %1, %2
+	jge %3
+%endmacro
+
+%macro jmp_if_le 3
+	cmp %1, %2
+	jle %3
+%endmacro
+
+%macro jmp_if_at 3
+	cmp %1, %2
+	ja %3
+%endmacro
+
+%macro jmp_if_bt 3
+	cmp %1, %2
+	jb %3
+%endmacro
+
+%macro jmp_if_ae 3
+	cmp %1, %2
+	jae %3
+%endmacro
+
+%macro jmp_if_be 3
+	cmp %1, %2
+	jbe %3
+%endmacro
+
+
+%endif

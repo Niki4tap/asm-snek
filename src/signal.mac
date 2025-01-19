@@ -1,0 +1,25 @@
+%include "common.mac"
+
+%ifndef SIGNAL_MAC
+%define SIGNAL_MAC
+
+;; linux/include/uapi/asm-generic/signal.h
+%define SIGINT 2
+
+;; linux/include/uapi/asm-generic/signal-defs.h
+%define SA_RESTORER 0x04000000
+
+;; man sigaction(2) actually kind of lies in this specific case,
+;; canonical definition lives at:
+;;
+;; linux/include/linux/signal_types.h
+struc sigaction
+	.handler: c_long(res)
+	.flags: c_long(res)
+	.restorer: c_long(res)
+	.mask: c_long(res)
+endstruc
+
+struc_zero(sigaction)
+
+%endif

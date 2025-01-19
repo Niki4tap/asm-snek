@@ -1,0 +1,29 @@
+%include "syscall.mac"
+
+%ifndef RAND_MAC
+%define RAND_MAC
+
+%define O_RDONLY 0
+
+%macro rand_open 0
+	system_call SYSCALL_OPEN, rand_device, O_RDONLY, 0
+	mov [rand_fd], rax
+%endmacro
+
+%macro rand_get 2
+	system_call SYSCALL_READ, [rand_fd], %1, %2
+%endmacro
+
+%macro rand_byte 1
+	rand_get %1, 1
+%endmacro
+
+%macro rand_word 1
+	rand_get %1, 2
+%endmacro
+
+%macro rand_close 0
+	system_call SYSCALL_CLOSE, [rand_fd]
+%endmacro
+
+%endif

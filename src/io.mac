@@ -1,0 +1,23 @@
+%include "syscall.mac"
+
+%ifndef IO_MAC
+%define IO_MAC
+
+%define STDIN 0
+%define STDOUT 1
+%define STDERR 2
+
+%macro const_write 2-*
+	jmp %%endstr
+	%%str: db %strcat(%{2:-1})
+	%%endstr:
+	system_call SYSCALL_WRITE, %1, %%str, %%endstr-%%str
+%endmacro
+
+%macro write_str 3
+	system_call SYSCALL_WRITE, %1, %2, %3
+%endmacro
+
+%define write_int write_str STDOUT, your_number, [your_number_len]
+
+%endif

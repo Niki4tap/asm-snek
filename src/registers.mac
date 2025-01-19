@@ -1,0 +1,49 @@
+%ifndef REGISTERS_MAC
+%define REGISTERS_MAC
+
+;; a, b, c, d
+%define is_basic_register(x, r) x = %tok(%strcat("r", %str(r), "x")) || x = %tok(%strcat("e", %str(r), "x")) || x = %tok(%strcat(%str(r), "x")) || x = %tok(%strcat(%str(r), "h")) || x == %tok(%strcat(%str(r), "l"))
+;; bp, si, di, sp
+%define is_special_register(x, r) x = %tok(%strcat("r", %str(r))) || x = %tok(%strcat("e", %str(r))) || x = r || x == %tok(%strcat(%str(r), "l"))
+;; 8, 9, 10, 11, 12, 13, 14, 15
+%define is_new_register(x, r) x = %tok(%strcat("r", %str(r))) || x = %tok(%strcat("r", %str(r), "d")) || x = %tok(%strcat("r", %str(r), "w")) || x == %tok(%strcat("r", %str(r), "b"))
+
+%macro gen_basic 1
+	%define %[is_register_ %+ %1](x) is_basic_register(x, %1)
+%endmacro
+
+gen_basic a
+gen_basic b
+gen_basic c
+gen_basic d
+
+%unmacro gen_basic 1
+
+%macro gen_special 1
+	%define %[is_register_ %+ %1](x) is_special_register(x, %1)
+%endmacro
+
+gen_special bp
+gen_special si
+gen_special di
+gen_special sp
+
+%unmacro gen_special 1
+
+%macro gen_new 1
+	%define %[is_register_ %+ %1](x) is_new_register(x, %1)
+%endmacro
+
+gen_new 8
+gen_new 9
+gen_new 10
+gen_new 11
+gen_new 12
+gen_new 13
+gen_new 14
+gen_new 15
+
+%unmacro gen_new 1
+
+
+%endif

@@ -1,0 +1,159 @@
+%include "common.mac"
+%include "syscall.mac"
+%include "io.mac"
+%include "mem.inc"
+
+%ifndef TERM_MAC
+%define TERM_MAC
+
+;; info on this is pretty sparse, so I'm going to leave links for further reading
+;; if anyone finds this useful
+
+;; https://en.wikipedia.org/wiki/ANSI_escape_code#Control_Sequence_Introducer_commands
+%define CSI `\e[`
+
+%macro _styler 2
+	%define %[STYLE_ %+ %1] %strcat(CSI, %str(%2), "m")
+%endmacro
+%define styler(x, y) _styler x, y
+
+styler(RESET,		0)
+styler(BOLD,		1)
+styler(DIM,			2)
+styler(ITALIC,		3)
+styler(UNDERLINE,	4)
+styler(INVERT,		7)
+
+%unmacro _styler 2
+%undef styler
+
+%define CURSOR_UP(n) %strcat(CSI, %str(n), "A")
+%define CURSOR_DOWN(n) %strcat(CSI, %str(n), "B")
+%define CURSOR_FORWARD(n) %strcat(CSI, %str(n), "C")
+%define CURSOR_BACK(n) %strcat(CSI, %str(n), "D")
+%define CURSOR_SET_POS(x, y) %strcat(CSI, %str(y), ";", %str(x), "H")
+%define CURSOR_GET_POS %strcat(CSI, "6n")
+%define ENTER_ALTERNATE_SCREEN %strcat(CSI, "?1049h")
+%define EXIT_ALTERNATE_SCREEN %strcat(CSI, "?1049l")
+%define HIDE_CURSOR %strcat(CSI, "?25l")
+%define SHOW_CURSOR %strcat(CSI, "?25h")
+%define CLEAR_SCREEN %strcat(CSI, "2J")
+
+%macro _cursor_set_pos 2
+	%ifndef CHECKED
+		syscall_clobber_warning
+		check_param_syscall_safe(%1)
+		check_param_syscall_safe(%2)
+	%else
+		%undef CHECKED
+	%endif
+
+	%define CHECKED
+	const_write STDOUT, CSI
+
+	mov di, %2
+	call int_to_str
+	%define CHECKED
+	write_str STDOUT, your_number, [your_number_len]
+	%define CHECKED
+	const_write STDOUT, ";"
+
+	mov di, %1
+	call int_to_str
+	%define CHECKED
+	write_str STDOUT, your_number, [your_number_len]
+	%define CHECKED
+	const_write STDOUT, "H"
+%endmacro
+%xdefine cursor_set_pos(x, y) _cursor_set_pos x, y
+
+%macro const_write_at 4-*
+	%ifndef CHECKED
+		syscall_clobber_warning
+		check_param_syscall_safe(%1)
+		check_param_syscall_safe(%2)
+		check_param_syscall_safe(%3)
+	%else
+		%undef CHECKED
+	%endif
+
+	sub %1, %eval(%strlen(%strcat(%{4:-1})) / 2)
+
+	%define CHECKED
+	cursor_set_pos(%1, %2)
+
+	jmp %%endstr
+	%%str: db %strcat(%{4:-1})
+	%%endstr:
+	checked_system_call SYSCALL_WRITE, %3, %%str, %%endstr-%%str
+%endmacro
+
+%define NUM_CSI 0x5B1B
+%define KEY_X(x) %eval((x << 16) + NUM_CSI)
+%xdefine KEY_UP		KEY_X(0x41)
+%xdefine KEY_DOWN	KEY_X(0x42)
+%xdefine KEY_RIGHT	KEY_X(0x43)
+%xdefine KEY_LEFT	KEY_X(0x44)
+
+
+;; linux/include/uapi/asm-generic/ioctls.h
+%define TCGETS2 0x802_C54_2A
+%define TCSETS2 0x402_C54_2B
+
+%define TIOCGWINSZ 0x5413
+
+struc winsize
+	.ws_row: c_short(res)		;; rows, in characters
+	.ws_col: c_short(res)		;; columns, in characters
+	.ws_xpixel: c_short(res)	;; horizontal size, pixels
+	.ws_ypixel: c_short(res)	;; vertical size, pixels
+endstruc
+
+;; linux/include/uapi/asm-generic/termbits-common.h
+%xdefine cc_t c_char(res)
+%xdefine speed_t c_int(res)
+
+;; linux/include/uapi/asm-generic/termbits.h
+%xdefine tcflag_t c_int(res)
+%define NCCS 19
+%define VTIME 5
+%define VMIN 6
+%define ICANON 0x00002
+%define ECHO 0x00008
+
+struc termios2
+	.c_iflag: tcflag_t		;; input mode flags
+	.c_oflag: tcflag_t		;; output mode flags
+	.c_cflag: tcflag_t		;; control mode flags
+	.c_lflag: tcflag_t 		;; local mode flags
+	.c_line: cc_t			;; line discipline
+	.c_cc: resb NCCS		;; control characters
+	.c_ispeed: speed_t		;; input speed
+	.c_ospeed: speed_t		;; output speed
+endstruc
+
+;; cbreak mode: https://utcc.utoronto.ca/~cks/space/blog/unix/CBreakAndRaw
+%macro enter_cbreak 0
+	%ifndef CHECKED
+		syscall_clobber_warning
+	%else
+		%undef CHECKED
+	%endif
+	clean(rax)
+	checked_system_call SYSCALL_IOCTL, STDIN, TCGETS2, original_term
+	mov rdi, term
+	mov rsi, original_term
+	mov rdx, termios2_size
+	call memcpy
+	and c_int_ptr [term+termios2.c_lflag], %eval(~(ICANON | ECHO))
+	mov c_char_ptr [term+%eval(termios2.c_cc + VMIN)], 1
+	mov c_char_ptr [term+%eval(termios2.c_cc + VTIME)], 0
+	checked_system_call SYSCALL_IOCTL, STDIN, TCSETS2, term
+%endmacro
+
+%macro exit_cbreak 0
+	clean(rax)
+	system_call SYSCALL_IOCTL, STDIN, TCSETS2, original_term
+%endmacro
+
+%endif

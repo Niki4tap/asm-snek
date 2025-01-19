@@ -1,0 +1,33 @@
+%include "common.mac"
+%include "syscall.mac"
+
+%ifndef POLL_MAC
+%define POLL_MAC
+
+%define POLLIN 0x1
+
+struc pollfd
+	.fd: c_int(res)
+	.events: c_short(res)
+	.revents: c_short(res)
+endstruc
+
+struc_zero(pollfd)
+
+%xdefine poll_revents(poller) poll_revents_n(poller, 0)
+%define poll_revents_n(poller, n) [poller+%eval(pollfd_size * n + pollfd.revents)]
+
+%macro mk_poll 3
+	mk_poll_n %1, 0, %2, %3
+%endmacro
+
+%macro mk_poll_n 4
+	mov c_int_ptr [%1+%eval(pollfd_size * %2 + pollfd.fd)], %3
+	mov c_short_ptr [%1+%eval(pollfd_size * %2 + pollfd.events)], %4
+%endmacro
+
+%macro poll 3
+	system_call SYSCALL_POLL, %1, %2, %3
+%endmacro
+
+%endif

@@ -1,0 +1,7 @@
+%ifndef BOOL_MAC
+%define BOOL_MAC
+
+%define true 0
+%define false 1
+
+%endif

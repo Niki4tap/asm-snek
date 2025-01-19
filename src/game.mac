@@ -1,0 +1,32 @@
+%include "common.mac"
+
+%ifndef GAME_MAC
+%define GAME_MAC
+
+%define GAME_STATE_RUNNING 0
+%define GAME_STATE_PAUSED 1
+%define GAME_STATE_WON 2
+%define GAME_STATE_LOST 3
+%define GAME_STATE_STOP 4
+
+%define DIRECTION_UP	0
+%define DIRECTION_RIGHT 1
+%define DIRECTION_DOWN	2
+%define DIRECTION_LEFT	3
+
+struc snake_tile
+	.x: resw 1
+	.y: resw 1
+	.direction: resb 1
+endstruc
+
+struc_zero(snake_tile)
+
+struc pos
+	.x: resw 1
+	.y: resw 1
+endstruc
+
+struc_zero(pos)
+
+%endif

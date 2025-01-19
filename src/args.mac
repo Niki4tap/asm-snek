@@ -1,0 +1,29 @@
+%include "common.mac"
+
+%ifndef ARGS_MAC
+%define ARGS_MAC
+
+%macro start_prelude 0
+	mov rax, [rsp]
+	mov [argc], rax
+	lea rax, [rsp + 8]
+	mov [argv], rax
+
+	clean(rdi)
+	clean(rsi)
+	clean(rdx)
+	clean(rcx)
+	clean(r8)
+	clean(r9)
+%endmacro
+
+%macro get_argv 2
+	%ifnum %2
+		mov %1, [argv]
+		mov %1, [%1 + %eval(%2 * 8)]
+	%else
+		%error "get_argv expects a number"
+	%endif
+%endmacro
+
+%endif
