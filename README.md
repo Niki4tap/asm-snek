@@ -32,5 +32,5 @@ Hyperoptimizing specific pieces of code in certain situations is a totally fine 
 1) `Ctrl+C` does not work to exit the game while it is paused - this is because game is waiting for a character, not a signal, this could be fixed in a variety of ways, but I don't know if I want to fix this right now.
 2) Resizing the terminal during the game leads to all kinds of problems - yes, the game assumes the terminal size stays constant, for simplicity of implementation, all the logic probably could be safeguarded against resizing, but this is a "won't fix" for now.
 3) All UI text is skewed to the left a little - macro that calculates the offsets includes the length of non-printable characters for styling, and there isn't really a way to fix it, other than not using the macro which would require some refactoring.
-4) Lack of support for "dumb" terminals - Would be a nightmare in assembly, see ncurses database.
+4) Lack of support for "dumb" terminals - Would be a nightmare in assembly, see terminfo database.
 5) Overall lack of error handling - the program assumes happy path :) (it's quite difficult to handle errors in assembly, and operations dealing with text especially since you cannot display them to the user in case of an error).
